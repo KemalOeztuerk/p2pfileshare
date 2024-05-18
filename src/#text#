@@ -1,0 +1,42 @@
+  .emacs.d
+
+  test
+
+  sockets_project
+
+  otomata
+
+  C
+
+  SiberVatan
+
+  veri_yonetimi_ve_dosya_yapilari
+
+  web teknolojileri
+
+  SiberVatanPenTest
+
+  UDPHolePunching
+
+  p2pfileshare
+    bin
+    obj
+    src
+      cli
+      client.c
+      client.h
+      client.o
+      filefromserver
+      main.c
+      main.o
+      server
+      server.c
+      server.h
+      text
+    LICENSE
+    Makefile
+    README.md
+
+  SiberVatanWeb
+    svgun1.txt
+    svgun2.txt
