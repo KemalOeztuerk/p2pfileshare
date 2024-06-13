@@ -1,5 +1,5 @@
-#ifndef CLIENT_H
-#define CLIENT_H
+#ifndef DOWNLOAD_H
+#define DOWNLOAD_H
 
 #include <stdio.h>
 #include <stdlib.h>

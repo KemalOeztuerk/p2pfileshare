@@ -1,4 +1,4 @@
-#include "client.h"
+#include "download.h"
 
 int download(char *hostname, char *filename){
   

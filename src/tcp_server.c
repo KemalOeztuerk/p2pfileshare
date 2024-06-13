@@ -1,17 +1,31 @@
 
-#include "server.h"
 
-void *get_in_addr(struct sockaddr *sa){
-  if(sa->sa_family==AF_INET){
-    return &(((struct sockaddr_in*)sa)->sin_addr); //ipv4
-  }
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <signal.h>
 
-  return &(((struct sockaddr_in*)sa)->sin_addr); //ipv6
+#include "utils.h"
+#include "tcp_server.h"
 
-}
+#define BACKLOG 10
+
+/*void handler(void *arg){
+  int sockfd = *(int*)(arg);
+
+  // *i will implement in later
+}*/
 
 
-int upload(){
+int start_tcp_server(char* port, handler_t handler){
   int sockfd, client_fd;
   struct addrinfo hints, *servinfo;
   
@@ -24,7 +38,8 @@ int upload(){
 
   int rv;
 
-  if((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0){
+  
+  if((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0){
     fprintf(stderr, "getaddrinfo: %s\n",gai_strerror(rv));
     exit(1);
   }
@@ -49,7 +64,7 @@ int upload(){
     }
    
     break;
- }
+  }
 
   freeaddrinfo(servinfo);
 
@@ -69,14 +84,7 @@ int upload(){
 
   struct sockaddr_storage client_addr;
   socklen_t sin_size;
-  char s[INET6_ADDRSTRLEN];
-  char buf[MAXDATASIZE];
-
-  //file stuff
-  FILE *fp;
-  long filesize;
-  char *b = malloc(sizeof(char));
-  char filename[64];
+  // char s[INET6_ADDRSTRLEN];
   
   while(1){   
     sin_size = sizeof (client_addr);
@@ -88,34 +96,8 @@ int upload(){
       continue; // ???
     }
 
-    if(recv(client_fd, filename, sizeof(filename)-1, 0 ) == -1){ //send command
-    perror("server: send");
-    continue;
-    }
-    printf("%s \n ", filename);
-
- 
-    inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr*)&client_addr), s, sizeof(s));
+    handler(client_fd, NULL);
     
-    //printf("Server got connection from %s\n", s);
-
-    // set filesize
-    fp = fopen(filename,"r");
-    fseek(fp,0,SEEK_END);
-    filesize = ftell(fp);
-    rewind(fp);
-
-    //send file
-    size_t bytes_read;
-    while ((bytes_read = fread(buf, 1, MAXDATASIZE, fp)) > 0) {
-      if (send(client_fd, buf, bytes_read, 0) == -1) {
-	perror("server: send");
-	fclose(fp);
-	close(client_fd);
-	break;
-      }
-    }
-    fclose(fp);
     printf("file has been sent\n");
    
     
@@ -129,4 +111,3 @@ int upload(){
   return 0;
     
 }
-

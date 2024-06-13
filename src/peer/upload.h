@@ -1,3 +1,6 @@
+#ifndef UPLOAD_H
+#define UPLOAD_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -17,3 +20,5 @@
 #define MAXDATASIZE 1024
 
 int upload();
+
+#endif
