@@ -13,12 +13,12 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include "utils.h"
+#include "../utils.h"
 
 #define PORT "5555"
 #define BACKLOG 10
 #define MAXDATASIZE 1024
 
-int upload();
+void upload_handler(int client_fd, void *meta_info);
 
 #endif

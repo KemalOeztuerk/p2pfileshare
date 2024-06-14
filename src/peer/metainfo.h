@@ -12,7 +12,9 @@ typedef struct metainfo_t{
   
 }metainfo;
 
-metainfo* create_metainfo(char* file_path,char* filename, char* tracker_host);
+metainfo *init_metainfo(char* file_path,char* filename, char* tracker_host);
+int create_metainfo_file(char* dest_path, metainfo* mi);
+int read_metainfo_file(char *metainfo_path, metainfo* mi_out);
 
 void free_metainfo(metainfo *mi);
 

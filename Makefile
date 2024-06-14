@@ -1,30 +1,50 @@
+# Compiler and flags
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -Wall -Wextra -O2
+LDFLAGS = -lpthread
 
-TARGET = program
-
+# Directories
 SRCDIR = src
 OBJDIR = obj
 BINDIR = bin
+FILES_DIR = files
 
-SRCS = $(wildcard $(SRCDIR)/*.c)
-OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
+# Target executable names
+TARGET = $(BINDIR)/program
 
-all: $(BINDIR)/$(TARGET)
+# Source files
+SRC_FILES = $(wildcard $(SRCDIR)/*.c $(SRCDIR)/peer/*.c $(SRCDIR)/tracker/*.c)
+OBJ_FILES = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC_FILES))
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
+# Header files
+HEADERS = $(wildcard $(SRCDIR)/*.h $(SRCDIR)/peer/*.h $(SRCDIR)/tracker/*.h)
+
+# Default target
+all: $(TARGET)
+
+# Build target executable
+$(TARGET): $(OBJ_FILES)
+	@mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+
+# Build object files
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(HEADERS)
+	@mkdir -p $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BINDIR)/$(TARGET): $(OBJS) | $(BINDIR)
-	$(CC) $(CFLAGS) -o $@ $^
+# Build object files for peer
+$(OBJDIR)/%.o: $(SRCDIR)/peer/%.c $(HEADERS)
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR):
-	mkdir -p $(OBJDIR)
+# Build object files for tracker
+$(OBJDIR)/%.o: $(SRCDIR)/tracker/%.c $(HEADERS)
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BINDIR):
-	mkdir -p $(BINDIR)
-
+# Clean target
 clean:
-	rm -f $(OBJDIR)/*.o $(BINDIR)/$(TARGET)
+	rm -rf $(OBJDIR) $(BINDIR)
 
+# Phony targets
 .PHONY: all clean

@@ -18,17 +18,9 @@
 
 #define BACKLOG 10
 
-/*void handler(void *arg){
-  int sockfd = *(int*)(arg);
-
-  // *i will implement in later
-}*/
-
-
-int start_tcp_server(char* port, handler_t handler){
+int start_tcp_server(char* port, handler_t handler,void *args){
   int sockfd, client_fd;
   struct addrinfo hints, *servinfo;
-  
 
   memset(&hints, 0, sizeof(hints)); // for security
   
@@ -96,13 +88,8 @@ int start_tcp_server(char* port, handler_t handler){
       continue; // ???
     }
 
-    handler(client_fd, NULL);
-    
-    printf("file has been sent\n");
-   
-    
-   
-   
+    handler(client_fd, args);
+        
     close(client_fd);
   }
 

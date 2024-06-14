@@ -1,86 +1,45 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <signal.h>
+
+#define PORT "5555"
+#define BACKLOG 10
+#define MAXDATASIZE 1024
+
 #include "upload.h"
+#include "../tcp_server.h"
+#include "metainfo.h"
 
-
-int upload(){
-  int sockfd, client_fd;
-  struct addrinfo hints, *servinfo;
-  
-
-  memset(&hints, 0, sizeof(hints)); // for security
-  
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = AI_PASSIVE; // use my ip
-
-  int rv;
-
-  if((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0){
-    fprintf(stderr, "getaddrinfo: %s\n",gai_strerror(rv));
-    exit(1);
-  }
-
-  struct addrinfo *p;
-  for (p = servinfo; p!=NULL; p=p->ai_next ){ // set the socket
-
-    if( (sockfd = socket(p->ai_family, p->ai_socktype,p->ai_protocol)) == -1 ){ //!!
-      perror("server: socket");
-      continue;
-    }
-    
-    int yes = 1;
-    if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int))==-1){ //!!
-      perror("server: setsockopt");
-      exit(1);
-    }
-
-    if(bind(sockfd,p->ai_addr,p->ai_addrlen)==-1){ //!!
-      perror("server: bind");
-      continue;
-    }
-   
-    break;
- }
-
-  freeaddrinfo(servinfo);
-
-  if(p == NULL){
-    fprintf(stderr,"server failed to bind\n");
-    exit(1);
-  }
-
-  if(listen(sockfd,BACKLOG)==-1){
-    perror("server: listen");
-    exit(1);
-  }
-
-  
-
-  printf("waiting for connections...\n");
-
+typedef struct peer_t{
+  int id;
+  metainfo files[128];
   struct sockaddr_storage client_addr;
-  socklen_t sin_size;
+  
+}peer;
+
+
+void upload_handler(int client_fd, void *peer_info){
+  struct sockaddr_storage client_addr = *(struct sockaddr_storage*)peer_info;
+  
   char s[INET6_ADDRSTRLEN];
   char buf[MAXDATASIZE];
-
-  //file stuff
   FILE *fp;
-  long filesize;
-  char *b = malloc(sizeof(char));
   char filename[64];
+
   
-  while(1){   
-    sin_size = sizeof (client_addr);
-
-    client_fd = accept ( sockfd, (struct sockaddr*)&client_addr, &sin_size);
-
-    if ( client_fd == -1){
-      perror( "server: accept");
-      continue; // ???
-    }
-
     if(recv(client_fd, filename, sizeof(filename)-1, 0 ) == -1){ //send command
     perror("server: send");
-    continue;
+    exit(1);
     }
     printf("%s \n ", filename);
 
@@ -88,14 +47,10 @@ int upload(){
     inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr*)&client_addr), s, sizeof(s));
     
     //printf("Server got connection from %s\n", s);
-
-    // set filesize
+    
     fp = fopen(filename,"r");
-    fseek(fp,0,SEEK_END);
-    filesize = ftell(fp);
-    rewind(fp);
-
-    //send file
+    
+    //send 
     size_t bytes_read;
     while ((bytes_read = fread(buf, 1, MAXDATASIZE, fp)) > 0) {
       if (send(client_fd, buf, bytes_read, 0) == -1) {
@@ -105,18 +60,13 @@ int upload(){
 	break;
       }
     }
-    fclose(fp);
-    printf("file has been sent\n");
-   
-    
-   
-   
-    close(client_fd);
-  }
 
-  close(sockfd);
-  
-  return 0;
-    
+    fclose(fp);
+    close(client_fd);
+
+    printf("file has been sent\n");
 }
+
+
+
 

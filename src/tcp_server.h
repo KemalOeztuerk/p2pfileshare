@@ -4,6 +4,6 @@
 
 typedef void (*handler_t)(int sockfd,void *args);
 
-int start_tcp_server(char *port, handler_t);
+int start_tcp_server(char *port, handler_t handler,void *args);
 
 #endif 

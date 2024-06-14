@@ -4,15 +4,15 @@
 #include <stdlib.h>
 #include <openssl/sha.h>
 #include "metainfo.h"
-#include "utils.h"
+#include "../utils.h"
 
-metainfo* create_metainfo(char* file_path,char* file_name, char* tracker_host){
+metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host){
 
   unsigned char buffer[1024]; // buffer to read
   
   FILE *fp = fopen(file_path,"rb");
   if(fp == NULL){
-    perror("fopen");
+    perror("metainfo fopen");
     return NULL; 
   }
 
@@ -31,7 +31,7 @@ metainfo* create_metainfo(char* file_path,char* file_name, char* tracker_host){
   metainfo *mi = (metainfo*)malloc(sizeof(metainfo));
 
   if(mi == NULL){
-    perror("malloc");
+    perror("metainfo malloc");
     return NULL;
   }
 
@@ -47,6 +47,43 @@ metainfo* create_metainfo(char* file_path,char* file_name, char* tracker_host){
   
 }
 
+int create_metainfo_file(char *dest_path, metainfo* mi){
+  FILE *fp;
+  fp = fopen(dest_path,"wb");
+  if(fp == NULL){
+    perror("metainfo fopen");
+    return -1;
+  }
+
+  if(fwrite(mi,sizeof(metainfo),1,fp)!= 1){
+    perror("fwrite");
+    fclose(fp);
+    return -1;
+  }
+
+  fclose(fp);
+  
+  return 0;
+}
+
+int read_metainfo_file(char *metainfo_path,metainfo* mi_out){
+  FILE *fp;
+  metainfo *mi = malloc(sizeof(metainfo));
+  if(mi == NULL){
+    perror("metainfo malloc");
+    return -1;
+  }
+
+  fp = fopen(metainfo_path,"r");
+  if(fread(mi,sizeof(metainfo),1,fp)){
+    perror("metainfo fread");
+    return -1;
+  }
+  
+  memcpy(mi_out,mi,sizeof(metainfo));
+  return 0;
+  
+}
 void free_metainfo(metainfo *mi){
   if(mi){
     free(mi);
