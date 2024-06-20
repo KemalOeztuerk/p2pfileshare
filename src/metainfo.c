@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <openssl/sha.h>
 #include "metainfo.h"
-#include "../utils.h"
+#include "utils.h"
 
-metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host){
+metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host,int flag){
 
   unsigned char buffer[1024]; // buffer to read
   
@@ -42,6 +42,8 @@ metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host){
   mi->file_size_in_bytes = get_file_size(file_path);
 
   strncpy(mi->tracker_host, tracker_host, sizeof(mi->tracker_host));
+
+  mi->flag=flag;
   
   return mi;
   

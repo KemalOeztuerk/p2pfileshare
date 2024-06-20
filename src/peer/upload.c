@@ -18,7 +18,7 @@
 
 #include "upload.h"
 #include "../tcp_server.h"
-#include "metainfo.h"
+#include "../metainfo.h"
 
 typedef struct peer_t{
   int id;

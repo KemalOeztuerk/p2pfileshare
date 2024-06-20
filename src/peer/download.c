@@ -13,7 +13,7 @@
 
 #include "../tcp_client.h"
 #include "download.h"
-#include "metainfo.h"
+#include "../metainfo.h"
 
 
 
