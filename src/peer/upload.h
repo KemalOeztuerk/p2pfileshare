@@ -19,6 +19,6 @@
 #define BACKLOG 10
 #define MAXDATASIZE 1024
 
-void upload_handler(int client_fd, void *meta_info);
+void *upload_handler(int client_fd, void *meta_info);
 
 #endif

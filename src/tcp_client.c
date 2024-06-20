@@ -14,7 +14,7 @@
 #define MAXDATASIZE 1024
 
 
-int start_tcp_client(char *hostname, char* port, handler_t handler, void *args){
+void *start_tcp_client(char *hostname, char* port, handler_t handler, void *args){
   
   int sockfd,rv;
   char s[INET_ADDRSTRLEN];
@@ -26,17 +26,17 @@ int start_tcp_client(char *hostname, char* port, handler_t handler, void *args){
 
 
   if( (rv=getaddrinfo(hostname,port,&hints,&servinfo)) == -1){
-    fprintf(stderr, "client: getaddrinfo, %s", gai_strerror(rv));
-    return 1;
+    fprintf(stderr, "tcp_client: getaddrinfo, %s", gai_strerror(rv));
+    return NULL;
   }
 
   for(p=servinfo; p!=NULL; p=p->ai_next){
     if((sockfd = socket(p->ai_family,p->ai_socktype,p->ai_protocol))==-1){
-      perror("client: error");
+      perror("tcp_client: socket");
       continue;
     }
     if(connect(sockfd,p->ai_addr,p->ai_addrlen)==-1){
-      perror("client: connect");
+      perror("tcp_client: connect");
       close(sockfd);
       continue;
     }
@@ -46,16 +46,21 @@ int start_tcp_client(char *hostname, char* port, handler_t handler, void *args){
 
   if(p==NULL){
     perror("client failed to connect\n");
-    return 2;
+    return NULL;
   }
 
   inet_ntop(p->ai_family, get_in_addr((struct sockaddr*)p->ai_addr), s, sizeof(s));
   printf("client: connecting to %s\n",s);
   freeaddrinfo(servinfo);
 
-  handler(sockfd, args);
+  void* retval = (void*)handler(sockfd, args);
+
+  if(retval == NULL){
+    perror("retval is NULL");
+    exit(-1);
+    }
   close(sockfd);
   
-  return 0;
+  return retval;
 }
 

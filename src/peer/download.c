@@ -17,7 +17,7 @@
 
 
 
-void download_handler(int sockfd, void *args){
+void *download_handler(int sockfd, void *args){
   metainfo *mi = (metainfo*)args;
   // char *filename = (char*)args;
   long numbytes;
@@ -59,5 +59,7 @@ void download_handler(int sockfd, void *args){
 
   
   fclose(fp);
+
+  return (void*)0;
 }
 

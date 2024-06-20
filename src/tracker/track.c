@@ -7,6 +7,7 @@
 
 #include "../tcp_server.h"
 #include "../metainfo.h"
+#include "../message.h"
 #include "../peer.h"
 #include "track.h"
 
@@ -35,7 +36,7 @@ sqlite3 *init_database(){
     "file_hash TEXT NOT NULL,"
     "file_size INTEGER NOT NULL,"
     "tracker_host TEXT NOT NULL,"
-    "flag INTEGER NOT NULL,"
+    //"flag INTEGER NOT NULL,"
     "peer_id INTEGER NOT NULL"
     ");";
 
@@ -73,12 +74,13 @@ sqlite3 *init_database(){
 }
 
 
-void tracker_handler(int client_fd,void *args ){
+void *tracker_handler(int client_fd,void *args ){
 
   sqlite3* db = init_database();
+  message *msg = malloc(sizeof(message));
   metainfo *mi = malloc(sizeof(metainfo));
   
-  if(recv(client_fd, mi, sizeof(metainfo), 0) == -1){
+  if(recv(client_fd, msg, sizeof(message), 0) == -1){
     perror("tracker: recv");
     exit(-1);
   }
@@ -116,7 +118,7 @@ void tracker_handler(int client_fd,void *args ){
   sqlite3_stmt *stmt;
   int peer_id;
 
-  switch(mi->flag){
+  switch(msg->flag){
   case PUBLISH:
     // Insert peer info into the database
     snprintf(sql, sizeof(sql),
@@ -134,14 +136,15 @@ void tracker_handler(int client_fd,void *args ){
     peer_id = sqlite3_last_insert_rowid(db);
 
     snprintf(sql, sizeof(sql),
-	     "INSERT INTO files (file_name, file_hash, file_size, tracker_host, flag) "
+	     "INSERT INTO files (file_name, file_hash, file_size, tracker_host,peer_id) "
 	     "VALUES (?, ?, ?, ?, ?)");
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) == SQLITE_OK) {
       sqlite3_bind_text(stmt, 1, mi->file_name, -1, SQLITE_STATIC);
       sqlite3_bind_text(stmt, 2, mi->sha1_info, -1, SQLITE_STATIC);
       sqlite3_bind_int(stmt, 3, mi->file_size_in_bytes);
       sqlite3_bind_text(stmt, 4, mi->tracker_host, -1, SQLITE_STATIC);
-      sqlite3_bind_int(stmt, 5, mi->flag);
+      sqlite3_bind_int(stmt, 5, peer_id);
+
 
       if (sqlite3_step(stmt) != SQLITE_DONE) {
 	fprintf(stderr, "SQL error: %s\n", sqlite3_errmsg(db));
@@ -191,7 +194,8 @@ void tracker_handler(int client_fd,void *args ){
   }
   //load db here somehow
   // ...
-  
+
+  return (void*)0;
   
 }
 

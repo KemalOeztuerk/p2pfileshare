@@ -12,7 +12,7 @@
 sqlite3* init_database();
 
 // Tracker handler function
-void tracker_handler(int client_fd, void *args);
+//void tracker_handler(int client_fd, void *args);
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {

@@ -4,6 +4,6 @@
 #include "../metainfo.h"
 #include "../utils.h"
 
-void download_handler(int sockfd, void *args );
+void *download_handler(int sockfd, void *args );
 
 #endif

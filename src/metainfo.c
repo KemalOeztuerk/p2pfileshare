@@ -6,7 +6,7 @@
 #include "metainfo.h"
 #include "utils.h"
 
-metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host,int flag){
+metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host,char *tracker_port){
 
   unsigned char buffer[1024]; // buffer to read
   
@@ -42,9 +42,8 @@ metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host,int 
   mi->file_size_in_bytes = get_file_size(file_path);
 
   strncpy(mi->tracker_host, tracker_host, sizeof(mi->tracker_host));
+  strncpy(mi->tracker_port, tracker_port, sizeof(mi->tracker_port));
 
-  mi->flag=flag;
-  
   return mi;
   
 }

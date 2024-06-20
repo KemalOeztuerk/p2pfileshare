@@ -1,51 +1,92 @@
 
 #include <stdio.h>
-#include <pthread.h>
-
-#include "../tcp_server.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include "../tcp_client.h"
-#include "download.h"
-#include "upload.h"
+#include "../peer.h"
 #include "../metainfo.h"
+#include "talk_tracker.h"
 
-//gcc -o ../../bin/client ../tcp_client.c ../tcp_server.c download.c upload.c metainfo.c ../utils.c main.c -lssl -lcrypto
+void print_usage(const char *prog_name) {
+    fprintf(stderr, "Usage: %s [-a] [-q] -f <file_path> -n <file_name> -t <tracker_host> -p <tracker_port> -o <output_path>\n", prog_name);
+    fprintf(stderr, "  -a  Announce file\n");
+    fprintf(stderr, "  -q  Query peers\n");
+    fprintf(stderr, "  -f  File path\n");
+    fprintf(stderr, "  -n  File name\n");
+    fprintf(stderr, "  -t  Tracker host\n");
+    fprintf(stderr, "  -p  Tracker port\n");
+    fprintf(stderr, "  -o  Output path (for announce) or metainfo path (for query)\n");
+}
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
+    int opt;
+    int announce_flag = 0, query_flag = 0;
+    char *file_path = NULL, *file_name = NULL, *tracker_host = NULL, *tracker_port = NULL, *output_path = NULL;
 
-  if(argc !=6){
-    printf("usage: main <file_path> <file_name> <tracker_host> <output_path> <flag>\n");
-    return -1;
-  }
-  
-  metainfo *mi = init_metainfo(argv[1],argv[2],argv[3],atoi(argv[4]));
-  create_metainfo_file(argv[4],mi);
+    while ((opt = getopt(argc, argv, "aqf:n:t:p:o:")) != -1) {
+        switch (opt) {
+            case 'a':
+                announce_flag = 1;
+                break;
+            case 'q':
+                query_flag = 1;
+                break;
+            case 'f':
+                file_path = optarg;
+                break;
+            case 'n':
+                file_name = optarg;
+                break;
+            case 't':
+                tracker_host = optarg;
+                break;
+            case 'p':
+                tracker_port = optarg;
+                break;
+            case 'o':
+                output_path = optarg;
+                break;
+            default:
+                print_usage(argv[0]);
+                return EXIT_FAILURE;
+        }
+    }
 
-  metainfo *mi2 = malloc(sizeof(metainfo));
-  read_metainfo_file(argv[4],mi2);
- printf("name:%s\n hash:%s \n size:%lu \nhost %s\n", mi2->file_name,mi2->sha1_info,mi2->file_size_in_bytes,mi2->tracker_host);
-  // start_tcp_server("5555",upload_handler);
-  //  start_tcp_client(argv[1],);
-  //download(argv[1],argv[2]);
+    if ((!announce_flag && !query_flag) || !file_path || !file_name || !tracker_host || !tracker_port || !output_path) {
+        print_usage(argv[0]);
+        return EXIT_FAILURE;
+    }
 
-  pid_t pid = fork();
+    metainfo *mi = malloc(sizeof(metainfo));
+    if (announce_flag) {
+      mi = init_metainfo(file_path, file_name, tracker_host,tracker_port);
+        create_metainfo_file(output_path, mi);
+		printf("%s %lu %s %s %d\n ",mi->file_name,mi->file_size_in_bytes,mi->tracker_host,mi->tracker_port,mi->flag);
 
-  if(pid == -1){
-    perror("fork");
-    return -1;
-  }
-  else if(pid == 0){
-        printf("server has started\n");
+        if (start_tcp_client(tracker_host, tracker_port, announce_file, mi) == NULL) {
+            fprintf(stderr, "Failed to announce file\n");
+            return EXIT_FAILURE;
+        }
+        printf("File announced successfully.\n");
+    } else if (query_flag) {
+        metainfo *mi_query = malloc(sizeof(metainfo));
+        read_metainfo_file(output_path, mi_query);
+	printf("%s %lu %s %s %d ",mi->file_name,mi->file_size_in_bytes,mi->tracker_host,mi->tracker_port,mi->flag);
+        if (!mi_query) {
+            fprintf(stderr, "Failed to read metainfo file\n");
+            return EXIT_FAILURE;
+        }
+        peer *p = (peer *)start_tcp_client(tracker_host, tracker_port, request_peer, mi_query);
+        if (p) {
+            printf("Peer found: %s:%d\n", p->ip, p->port);
+            free(p);
+        } else {
+            fprintf(stderr, "Failed to get peer information\n");
+            return EXIT_FAILURE;
+        }
+    }
 
-    start_tcp_server("5555",upload_handler,NULL);
-  }
-   
-  else{
-        printf("client has started\n");
-
-     start_tcp_client("127.0.0.1","5555",download_handler,mi2);
-     waitpid(pid, NULL, 0);
-  }
-    //  start_tcp_client("127.0.0.1","5555",download_handler,mi2);w
-  
-  return 0;
+    free_metainfo(mi);
+    return EXIT_SUCCESS;
 }

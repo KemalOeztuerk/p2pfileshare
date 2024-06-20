@@ -28,7 +28,7 @@ typedef struct peer_t{
 }peer;
 
 
-void upload_handler(int client_fd, void *peer_info){
+void *upload_handler(int client_fd, void *peer_info){
   struct sockaddr_storage client_addr = *(struct sockaddr_storage*)peer_info;
   
   char s[INET6_ADDRSTRLEN];
@@ -65,6 +65,8 @@ void upload_handler(int client_fd, void *peer_info){
     close(client_fd);
 
     printf("file has been sent\n");
+
+    return (void*)0;
 }
 
 
