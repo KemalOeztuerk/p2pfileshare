@@ -107,7 +107,8 @@ void *tracker_handler(int client_fd,void *args ){
   free(buffer);
   
   printf("tracker got message : %s %d %d\n",req_msg.peer->ip, req_msg.peer->port, req_msg.flag);
-  printf("metainfo: %s  %lu  %s  %s\n",
+  printf("metainfo:%s %s  %lu  %s  %s\n",
+	 req_msg.metainfo->sha1_info,
 	 req_msg.metainfo->file_name,
 	 req_msg.metainfo->file_size_in_bytes,
 	 req_msg.metainfo->tracker_host,
