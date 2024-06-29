@@ -1,9 +1,10 @@
 #ifndef PEER_H
 #define PEER_H
 
+#include <arpa/inet.h>
 #include "metainfo.h"
 typedef struct peer_t{
-  char *ip;
+  char ip[INET_ADDRSTRLEN];
   int port;
 }peer;
 

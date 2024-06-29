@@ -16,17 +16,27 @@ metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host,char
     return NULL; 
   }
 
+  //  calculate hash of the file in byte level
   SHA_CTX sha1;
   SHA1_Init(&sha1);
-  unsigned char output[SHA_DIGEST_LENGTH];
+  unsigned char hash[SHA_DIGEST_LENGTH]; // byte 
+  char hash_str[SHA_DIGEST_LENGTH*2+1];// hexadecimal
 
   size_t bytes_read;
   while((bytes_read = fread(buffer,1,sizeof(buffer),fp))!=0){
     SHA1_Update(&sha1, buffer, bytes_read);
   }
   
-  SHA1_Final(output,&sha1);
+  SHA1_Final(hash,&sha1);
   fclose(fp);
+
+  for(int i = 0; i<SHA_DIGEST_LENGTH; i++){
+    sprintf(&hash_str[i*2],"%02x",hash[i]);
+  }
+
+  
+
+  
 
   metainfo *mi = (metainfo*)malloc(sizeof(metainfo));
 
@@ -38,7 +48,7 @@ metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host,char
   strncpy(mi->file_name, file_name, sizeof(mi->file_name)-1);
   mi->file_name[sizeof(mi->file_name)-1] = '\0';
   
-  memcpy(mi->sha1_info,output,SHA_DIGEST_LENGTH);
+  memcpy(mi->sha1_info,hash_str,SHA_DIGEST_LENGTH*2+1);
   mi->file_size_in_bytes = get_file_size(file_path);
 
   strncpy(mi->tracker_host, tracker_host, sizeof(mi->tracker_host));
@@ -57,7 +67,7 @@ int create_metainfo_file(char *dest_path, metainfo* mi){
   }
 
   if(fwrite(mi,sizeof(metainfo),1,fp)!= 1){
-    perror("fwrite");
+    perror("metainfo: fwrite");
     fclose(fp);
     return -1;
   }
@@ -67,24 +77,23 @@ int create_metainfo_file(char *dest_path, metainfo* mi){
   return 0;
 }
 
-int read_metainfo_file(char *metainfo_path,metainfo* mi_out){
-  FILE *fp;
-  metainfo *mi = malloc(sizeof(metainfo));
-  if(mi == NULL){
-    perror("metainfo malloc");
+int read_metainfo_file(char *metainfo_path, metainfo* mi_out) {
+  FILE *fp = fopen(metainfo_path, "rb");
+  if (fp == NULL) {
+    perror("metainfo fopen");
     return -1;
   }
 
-  fp = fopen(metainfo_path,"r");
-  if(fread(mi,sizeof(metainfo),1,fp)){
+  if (fread(mi_out, sizeof(metainfo), 1, fp) != 1) {
     perror("metainfo fread");
+    fclose(fp);
     return -1;
   }
-  
-  memcpy(mi_out,mi,sizeof(metainfo));
+
+  fclose(fp);
   return 0;
-  
 }
+
 void free_metainfo(metainfo *mi){
   if(mi){
     free(mi);

@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall 
 LDFLAGS = -lpthread
 
 # Directories
@@ -18,7 +18,7 @@ CLIENT_OBJDIR = $(OBJDIR)/client
 CLIENT_SRCS = $(wildcard $(CLIENT_SRCDIR)/*.c)
 CLIENT_OBJS = $(patsubst $(SRCDIR)/%.c,$(CLIENT_OBJDIR)/%.o,$(COMMON_SRCS)) \
               $(patsubst $(CLIENT_SRCDIR)/%.c,$(CLIENT_OBJDIR)/%.o,$(CLIENT_SRCS))
-CLIENT_LDFLAGS = -lpthread -lssl -lcrypto
+CLIENT_LDFLAGS = -lpthread -lssl -lcrypto -lexpat
 
 # Tracker directories and files
 TRACKER_TARGET = $(BINDIR)/tracker
@@ -27,7 +27,7 @@ TRACKER_OBJDIR = $(OBJDIR)/tracker
 TRACKER_SRCS = $(wildcard $(TRACKER_SRCDIR)/*.c)
 TRACKER_OBJS = $(patsubst $(SRCDIR)/%.c,$(TRACKER_OBJDIR)/%.o,$(COMMON_SRCS)) \
                $(patsubst $(TRACKER_SRCDIR)/%.c,$(TRACKER_OBJDIR)/%.o,$(TRACKER_SRCS))
-TRACKER_LDFLAGS = -lpthread -lsqlite3 -lssl -lcrypto
+TRACKER_LDFLAGS = -lpthread -lsqlite3 -lssl -lcrypto -lexpat
 
 .PHONY: all clean
 

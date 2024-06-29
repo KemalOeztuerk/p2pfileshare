@@ -19,13 +19,14 @@
 #include "upload.h"
 #include "../tcp_server.h"
 #include "../metainfo.h"
+#include "../peer.h"
 
-typedef struct peer_t{
+/*typedef struct peer_t{
   int id;
   metainfo files[128];
   struct sockaddr_storage client_addr;
   
-}peer;
+  }peer;*/
 
 
 void *upload_handler(int client_fd, void *peer_info){

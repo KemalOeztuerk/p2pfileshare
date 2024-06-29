@@ -4,12 +4,14 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sqlite3.h>
+#include <assert.h>
 
 #include "../tcp_server.h"
 #include "../metainfo.h"
 #include "../message.h"
 #include "../peer.h"
 #include "track.h"
+#include "../utils.h"
 
 sqlite3 *init_database(){
   sqlite3 *db;
@@ -78,12 +80,47 @@ void *tracker_handler(int client_fd,void *args ){
 
   sqlite3* db = init_database();
   message *msg = malloc(sizeof(message));
-  metainfo *mi = malloc(sizeof(metainfo));
   
-  if(recv(client_fd, msg, sizeof(message), 0) == -1){
+  if (!msg) {
+    perror("tracker: malloc");
+    close(client_fd);
+    return NULL;
+  }
+  metainfo *mi = malloc(sizeof(metainfo));
+  if (!mi) {
+    perror("tracker: malloc");
+    free(mi);
+    free(msg);
+    close(client_fd);
+    return NULL;
+  }
+  
+  size_t buffer_size = 10000;
+  char *buffer = malloc(buffer_size);
+  if(recv(client_fd, buffer, buffer_size, 0) == -1){
     perror("tracker: recv");
     exit(-1);
   }
+
+  message req_msg;
+  xml_to_message(buffer, &req_msg);
+  free(buffer);
+  
+  printf("tracker got message : %s %d %d\n",req_msg.peer->ip, req_msg.peer->port, req_msg.flag);
+  printf("metainfo: %s  %lu  %s  %s\n",
+	 req_msg.metainfo->file_name,
+	 req_msg.metainfo->file_size_in_bytes,
+	 req_msg.metainfo->tracker_host,
+	 req_msg.metainfo->tracker_port);
+  if(mi==NULL){
+    printf("mi is NULL");
+  }
+
+  assert(mi != NULL);  // Assert that the destination is not NULL
+  assert(msg->metainfo != NULL);  // Assert that the source is not NULL
+  assert(sizeof(*mi) == sizeof(metainfo));  // Assert that the sizes match
+  // memcpy(mi, msg->metainfo, sizeof(metainfo)); // this and at the below code makes segfault
+  // printf("%s, %s\n",(msg->metainfo)->tracker_host,(msg->metainfo)->tracker_port);
 
   // TO DO: Handle hash table here
   //  hash_table *ht = malloc(sizeof(hash_table));
@@ -118,8 +155,9 @@ void *tracker_handler(int client_fd,void *args ){
   sqlite3_stmt *stmt;
   int peer_id;
 
-  switch(msg->flag){
+  switch(req_msg.flag){
   case PUBLISH:
+    printf("publish!\n");
     // Insert peer info into the database
     snprintf(sql, sizeof(sql),
 	     "INSERT INTO peer (ip, port) VALUES (?, ?)");
@@ -170,6 +208,7 @@ void *tracker_handler(int client_fd,void *args ){
     send(client_fd, "success", 10, 0);
     break;
   case DOWNLOAD:
+    printf("download!\n");
     // Retrieve and send peer info
     snprintf(sql, sizeof(sql),
 	     "SELECT peer.ip, peer.port FROM peer "
@@ -191,11 +230,15 @@ void *tracker_handler(int client_fd,void *args ){
     }
     //send()...
     break;
+  default:
+    printf("no valid flag\n");
+    return NULL;
   }
+  
   //load db here somehow
   // ...
 
-  return (void*)0;
+  return (void*)1;
   
 }
 

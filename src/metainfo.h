@@ -7,12 +7,11 @@
 #define PUBLISH 1
 #define DOWNLOAD 2
 typedef struct metainfo_t{
-  char file_name[128];
-  char sha1_info[20];
+  char file_name[256];
+  char sha1_info[41];
   size_t file_size_in_bytes;
-  char tracker_host[128];
-  char tracker_port[8];
-  int flag;
+  char tracker_host[256];
+  char tracker_port[6];
   
 }metainfo;
 

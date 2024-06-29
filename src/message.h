@@ -5,11 +5,11 @@
 #include "peer.h"
 
 typedef struct {
-  metainfo * metainfo;
+  metainfo *metainfo;
   peer *peer;
   int flag;
 }message;
-
 message *init_message(metainfo *metainfo, peer *peer, int flag);
+void free_message(message *msg);
   
 #endif

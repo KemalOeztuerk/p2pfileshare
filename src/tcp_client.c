@@ -19,7 +19,9 @@ void *start_tcp_client(char *hostname, char* port, handler_t handler, void *args
   int sockfd,rv;
   char s[INET_ADDRSTRLEN];
   struct addrinfo hints, *servinfo, *p;
-
+  
+ printf("Hostname: %s, Port: %s\n", hostname, port);
+ 
   memset(&hints,0,sizeof(hints));
   hints.ai_family=AF_UNSPEC;
   hints.ai_socktype=SOCK_STREAM;
@@ -45,12 +47,12 @@ void *start_tcp_client(char *hostname, char* port, handler_t handler, void *args
   }
 
   if(p==NULL){
-    perror("client failed to connect\n");
+    perror("tcp_client: failed to connect\n");
     return NULL;
   }
 
   inet_ntop(p->ai_family, get_in_addr((struct sockaddr*)p->ai_addr), s, sizeof(s));
-  printf("client: connecting to %s\n",s);
+  printf("tcp_client: connecting to %s\n",s);
   freeaddrinfo(servinfo);
 
   void* retval = (void*)handler(sockfd, args);
