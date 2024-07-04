@@ -8,6 +8,8 @@
 #include "../metainfo.h"
 #include "talk_tracker.h"
 
+#define DEFAULT_TRACKER_PORT "5555"
+#define DEFAULT_OUTPUT_PATH "files/out.metainfo"
 void print_usage(const char *prog_name) {
   fprintf(stderr, "Usage: %s [-a] [-q] -f <file_path> -n <file_name> -t <tracker_host> -p <tracker_port> -o <output_path>\n", prog_name);
   fprintf(stderr, "  -a  Announce file\n");
@@ -22,7 +24,7 @@ void print_usage(const char *prog_name) {
 int main(int argc, char *argv[]) {
   int opt;
   int announce_flag = 0, query_flag = 0;
-  char *file_path = NULL, *file_name = NULL, *tracker_host = NULL, *tracker_port = NULL, *output_path = NULL;
+  char *file_path = NULL, *file_name = NULL, *tracker_host = NULL, *tracker_port = DEFAULT_TRACKER_PORT, *output_path = DEFAULT_OUTPUT_PATH;
 
   while ((opt = getopt(argc, argv, "aqf:n:t:p:o:")) != -1) {
     switch (opt) {
@@ -53,7 +55,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if ((!announce_flag && !query_flag) || !file_path || !file_name || !tracker_host || !tracker_port || !output_path) {
+  if ((!announce_flag && !query_flag) || !file_path || !file_name || !tracker_host ) {
     print_usage(argv[0]);
     return EXIT_FAILURE;
   }

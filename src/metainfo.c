@@ -20,7 +20,7 @@ metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host,char
   SHA_CTX sha1;
   SHA1_Init(&sha1);
   unsigned char hash[SHA_DIGEST_LENGTH]; // byte 
-  char hash_str[SHA_DIGEST_LENGTH*2+1];// hexadecimal
+  char hash_str[SHA1_STR_SIZE];// hexadecimal
 
   size_t bytes_read;
   while((bytes_read = fread(buffer,1,sizeof(buffer),fp))!=0){
@@ -34,7 +34,7 @@ metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host,char
     sprintf(&hash_str[i*2],"%02x",hash[i]);
   }
 
-  
+  hash_str[SHA1_STR_SIZE-1] = '\0';
 
   
 
@@ -46,13 +46,15 @@ metainfo *init_metainfo(char* file_path,char* file_name, char* tracker_host,char
   }
 
   strncpy(mi->file_name, file_name, sizeof(mi->file_name)-1);
-  mi->file_name[sizeof(mi->file_name)-1] = '\0';
+  //  mi->file_name[sizeof(mi->file_name)-1] = '\0';
   
   memcpy(mi->sha1_info,hash_str,SHA_DIGEST_LENGTH*2+1);
   mi->file_size_in_bytes = get_file_size(file_path);
 
   strncpy(mi->tracker_host, tracker_host, sizeof(mi->tracker_host));
   strncpy(mi->tracker_port, tracker_port, sizeof(mi->tracker_port));
+
+  
 
   return mi;
   

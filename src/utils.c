@@ -37,6 +37,7 @@ char* message_to_xml(message *msg) {
 
     // Initialize the XML string
     snprintf(xml_str, xml_size,
+	     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
              "<message>\n"
              "  <metainfo>\n"
              "    <file_name>%s</file_name>\n"
@@ -59,8 +60,6 @@ char* message_to_xml(message *msg) {
              msg->peer->ip,
              msg->peer->port,
              msg->flag);
-
-    printf("%s\n",xml_str);
     return xml_str;
 }
 
@@ -89,17 +88,17 @@ void XMLCALL handle_data(void *data, const char *content, int length) {
     value[length] = '\0';
 
     if (strcmp(current_element, "file_name") == 0) {
-        strncpy(msg->metainfo->file_name, value, sizeof(msg->metainfo->file_name) - 1);
+        strncpy(msg->metainfo->file_name, value, sizeof(msg->metainfo->file_name));
     } else if (strcmp(current_element, "sha1_info") == 0) {
-        strncpy(msg->metainfo->sha1_info, value, sizeof(msg->metainfo->sha1_info) - 1);
+        strncpy(msg->metainfo->sha1_info, value, sizeof(msg->metainfo->sha1_info));
     } else if (strcmp(current_element, "file_size_in_bytes") == 0) {
         msg->metainfo->file_size_in_bytes = strtoull(value, NULL, 10);
     } else if (strcmp(current_element, "tracker_host") == 0) {
-        strncpy(msg->metainfo->tracker_host, value, sizeof(msg->metainfo->tracker_host) - 1);
+        strncpy(msg->metainfo->tracker_host, value, sizeof(msg->metainfo->tracker_host) );
     } else if (strcmp(current_element, "tracker_port") == 0) {
-        strncpy(msg->metainfo->tracker_port, value, sizeof(msg->metainfo->tracker_port) - 1);
+        strncpy(msg->metainfo->tracker_port, value, sizeof(msg->metainfo->tracker_port) );
     } else if (strcmp(current_element, "ip") == 0) {
-        strncpy(msg->peer->ip, value, sizeof(msg->peer->ip) - 1);
+        strncpy(msg->peer->ip, value, sizeof(msg->peer->ip) );
     } else if (strcmp(current_element, "port") == 0) {
         msg->peer->port = atoi(value);
     } else if (strcmp(current_element, "flag") == 0) {
@@ -110,13 +109,14 @@ void XMLCALL handle_data(void *data, const char *content, int length) {
 void xml_to_message(const char *xml_str, message *msg) {
     XML_Parser parser = XML_ParserCreate(NULL);
     parse_data pd;
+    //memset(&msg,0,sizeof(message));
     pd.msg = msg;
     pd.current_element[0] = '\0';
 
     msg->metainfo = (metainfo *)malloc(sizeof(metainfo));
     msg->peer = (peer *)malloc(sizeof(peer));
     if (msg->metainfo == NULL || msg->peer == NULL) {
-        perror("malloc");
+        perror("xml_to_message:malloc");
         exit(EXIT_FAILURE);
     }
 

@@ -2,13 +2,16 @@
 #define METAINFO_H
 
 #include <stdio.h>
+#include <openssl/sha.h>
 
-#define SHA1_SIZE 20
+#define SHA1_STR_SIZE (SHA_DIGEST_LENGTH * 2+1)
 #define PUBLISH 1
 #define DOWNLOAD 2
+#define SUCCESS 3
+#define FAILURE 4
 typedef struct metainfo_t{
   char file_name[256];
-  char sha1_info[41];
+  char sha1_info[SHA1_STR_SIZE];
   size_t file_size_in_bytes;
   char tracker_host[256];
   char tracker_port[6];

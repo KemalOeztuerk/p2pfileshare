@@ -47,16 +47,16 @@ void *announce_file(int sockfd, void *args) {
 void *request_peer(int sockfd, void *args) {
   printf("request!\n");
   metainfo *mi = (metainfo*)args;
-  peer *p = (peer*)malloc(sizeof(peer));
+  peer *p = init_peer("127.0.0.1", 5555);
   message *msg = init_message(mi, p, DOWNLOAD);
-
+  
   if (p == NULL) {
     perror("client: malloc");
     free(msg);
     return NULL;
   }
-   char *xml_str = message_to_xml(msg);
-   if (send(sockfd, xml_str, sizeof(xml_str), 0) == -1) {
+  char *xml_str = message_to_xml(msg);
+  if (send(sockfd, xml_str, strlen(xml_str), 0) == -1) {
     perror("client: send");
     free(msg);
     free(p);
@@ -64,15 +64,18 @@ void *request_peer(int sockfd, void *args) {
   }
 
   printf("Sent request to server\n");
-
-  if (recv(sockfd, p, sizeof(peer), 0) == -1) {
+  size_t buffer_size = 10000;
+  char *buffer = malloc(buffer_size);
+  if (recv(sockfd, buffer, buffer_size, 0) == -1) {
     perror("talk_tracker: recv");
     free(msg);
     free(p);
     return NULL;
   }
-
-  printf("Received peer: %s:%d\n", p->ip, p->port);
+  printf("response_message\n %s\n",buffer);
+  message res_msg;
+  xml_to_message(buffer,&res_msg);
+  printf("Received peer: %s:%d\n", res_msg.peer->ip, res_msg.peer->port);
   free(msg);
   return (void*)p;
 }

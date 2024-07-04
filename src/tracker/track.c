@@ -86,40 +86,31 @@ void *tracker_handler(int client_fd,void *args ){
     close(client_fd);
     return NULL;
   }
-  metainfo *mi = malloc(sizeof(metainfo));
-  if (!mi) {
-    perror("tracker: malloc");
-    free(mi);
-    free(msg);
-    close(client_fd);
-    return NULL;
-  }
+  // metainfo *mi = malloc(sizeof(metainfo));
+  
   
   size_t buffer_size = 10000;
   char *buffer = malloc(buffer_size);
+  memset(buffer, 0, buffer_size);
   if(recv(client_fd, buffer, buffer_size, 0) == -1){
     perror("tracker: recv");
     exit(-1);
   }
+  printf("request message\n%s\n",buffer);
 
   message req_msg;
   xml_to_message(buffer, &req_msg);
   free(buffer);
   
   printf("tracker got message : %s %d %d\n",req_msg.peer->ip, req_msg.peer->port, req_msg.flag);
-  printf("metainfo:%s %s  %lu  %s  %s\n",
+  printf("metainfo: hash:%s\n file_name:%s\n file_size%lu \n tracker_ip%s\n tracker_port: %s\n",
 	 req_msg.metainfo->sha1_info,
 	 req_msg.metainfo->file_name,
 	 req_msg.metainfo->file_size_in_bytes,
 	 req_msg.metainfo->tracker_host,
 	 req_msg.metainfo->tracker_port);
-  if(mi==NULL){
-    printf("mi is NULL");
-  }
+ 
 
-  assert(mi != NULL);  // Assert that the destination is not NULL
-  assert(msg->metainfo != NULL);  // Assert that the source is not NULL
-  assert(sizeof(*mi) == sizeof(metainfo));  // Assert that the sizes match
   // memcpy(mi, msg->metainfo, sizeof(metainfo)); // this and at the below code makes segfault
   // printf("%s, %s\n",(msg->metainfo)->tracker_host,(msg->metainfo)->tracker_port);
 
@@ -155,7 +146,7 @@ void *tracker_handler(int client_fd,void *args ){
   char sql[512];
   sqlite3_stmt *stmt;
   int peer_id;
-
+  
   switch(req_msg.flag){
   case PUBLISH:
     printf("publish!\n");
@@ -178,10 +169,10 @@ void *tracker_handler(int client_fd,void *args ){
 	     "INSERT INTO files (file_name, file_hash, file_size, tracker_host,peer_id) "
 	     "VALUES (?, ?, ?, ?, ?)");
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) == SQLITE_OK) {
-      sqlite3_bind_text(stmt, 1, mi->file_name, -1, SQLITE_STATIC);
-      sqlite3_bind_text(stmt, 2, mi->sha1_info, -1, SQLITE_STATIC);
-      sqlite3_bind_int(stmt, 3, mi->file_size_in_bytes);
-      sqlite3_bind_text(stmt, 4, mi->tracker_host, -1, SQLITE_STATIC);
+      sqlite3_bind_text(stmt, 1, req_msg.metainfo->file_name, -1, SQLITE_STATIC);
+      sqlite3_bind_text(stmt, 2, req_msg.metainfo->sha1_info, -1, SQLITE_STATIC);
+      sqlite3_bind_int(stmt, 3, req_msg.metainfo->file_size_in_bytes);
+      sqlite3_bind_text(stmt, 4, req_msg.metainfo->tracker_host, -1, SQLITE_STATIC);
       sqlite3_bind_int(stmt, 5, peer_id);
 
 
@@ -217,17 +208,22 @@ void *tracker_handler(int client_fd,void *args ){
 	     "JOIN files ON file_peer.file_id = files.id "
 	     "WHERE files.file_hash = ?");
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) == SQLITE_OK) {
-      sqlite3_bind_text(stmt, 1, mi->sha1_info, -1, SQLITE_STATIC);
+      sqlite3_bind_text(stmt, 1, req_msg.metainfo->sha1_info, -1, SQLITE_STATIC);
 
+      peer p;
       while (sqlite3_step(stmt) == SQLITE_ROW) {
-	peer p;
+
 	strncpy(p.ip, (const char *)sqlite3_column_text(stmt, 0), sizeof(p.ip) - 1);
 	p.port = sqlite3_column_int(stmt, 1);
-	if (send(client_fd, &p, sizeof(peer), 0) == -1) {
-	  perror("tracker: send");
-	}
       }
       sqlite3_finalize(stmt);
+      printf("response peer info: %s %d\n", p.ip, p.port);
+      message *res_msg = init_message(req_msg.metainfo, &p, SUCCESS);
+      char *xml_str = message_to_xml(res_msg);
+      if (send(client_fd, xml_str, strlen(xml_str), 0) == -1) {
+	perror("tracker: send");
+      }
+	
     }
     //send()...
     break;

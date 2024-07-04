@@ -9,8 +9,6 @@
 #define PUBLISH 1
 #define DOWNLOAD 2
 
-#pragma pack(push, 1)
-
 message *init_message(metainfo *mi, peer *p, int flag) {
   message *new_msg = malloc(sizeof(message));
   if (!new_msg) {
