@@ -18,7 +18,8 @@
 
 #define BACKLOG 10
 
-int start_tcp_server(char* port, handler_t handler,void *args){
+void *start_tcp_server(void *args){
+  tcp_server_args *sv_args = (tcp_server_args*)args;
   int sockfd, client_fd;
   struct addrinfo hints, *servinfo;
 
@@ -31,7 +32,7 @@ int start_tcp_server(char* port, handler_t handler,void *args){
   int rv;
 
   
-  if((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0){
+  if((rv = getaddrinfo(NULL, sv_args->port, &hints, &servinfo)) != 0){
     fprintf(stderr, "getaddrinfo: %s\n",gai_strerror(rv));
     exit(1);
   }
@@ -88,13 +89,13 @@ int start_tcp_server(char* port, handler_t handler,void *args){
       continue; // ???
     }
 
-    handler(client_fd, args);
+    sv_args->handler(client_fd, sv_args->args); //??
         
     close(client_fd);
   }
 
   close(sockfd);
   
-  return 0;
+  return (void*)1;
     
 }

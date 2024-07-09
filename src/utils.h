@@ -10,8 +10,10 @@ void *get_in_addr(struct sockaddr *sa);
 
 size_t get_file_size(char *file_path);
 
+char *hash_file(char *file_path);
 
 char* message_to_xml(message *msg);
 void xml_to_message(const char *xml_str, message *msg);
 
+int attempt_forward_port();
 #endif

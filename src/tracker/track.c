@@ -16,7 +16,7 @@
 sqlite3 *init_database(){
   sqlite3 *db;
   // create database
-  int rv = sqlite3_open("trackerdb.sqlite3",&db);
+  int rv = sqlite3_open("files/trackerdb.sqlite3",&db);
   if(rv){
     fprintf(stderr,"cannot open the database: %s\n",sqlite3_errmsg(db));
     return NULL;
@@ -91,7 +91,7 @@ void *tracker_handler(int client_fd,void *args ){
   
   size_t buffer_size = 10000;
   char *buffer = malloc(buffer_size);
-  memset(buffer, 0, buffer_size);
+  memset(buffer, 0, buffer_size); // ?
   if(recv(client_fd, buffer, buffer_size, 0) == -1){
     perror("tracker: recv");
     exit(-1);
@@ -129,15 +129,13 @@ void *tracker_handler(int client_fd,void *args ){
   }
 
   char client_ip[INET6_ADDRSTRLEN];
-  int client_port;
+  int client_port = req_msg.peer->port;
 
   if (client_addr.ss_family == AF_INET) { // ipv4
     struct sockaddr_in *s = (struct sockaddr_in *)&client_addr;
-    client_port = ntohs(s->sin_port);
     inet_ntop(AF_INET, &s->sin_addr, client_ip, sizeof(client_ip));
   } else { // ipv6
     struct sockaddr_in6 *s = (struct sockaddr_in6 *)&client_addr;
-    client_port = ntohs(s->sin6_port);
     inet_ntop(AF_INET6, &s->sin6_addr, client_ip, sizeof(client_ip));
   }
   printf("Client connected: %s:%d\n", client_ip, client_port);

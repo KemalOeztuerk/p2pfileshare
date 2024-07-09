@@ -27,8 +27,9 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    tcp_server_args sv_args ={argv[1],tracker_handler,NULL};
     // Start the TCP server
-    if (start_tcp_server(argv[1], tracker_handler, NULL) != 0) {
+    if (start_tcp_server((void*)&sv_args) != 0) {
         fprintf(stderr, "Failed to start the server on port %s\n", argv[1]);
         sqlite3_close(db);
         exit(EXIT_FAILURE);

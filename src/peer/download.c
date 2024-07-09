@@ -18,12 +18,14 @@
 
 
 void *download_handler(int sockfd, void *args){
-  metainfo *mi = (metainfo*)args;
+  message *msg = (message*)args;
+  printf("started download\n");
+  printf("download: %s, %s\n",msg->metainfo->file_name,msg->metainfo->sha1_info);
   // char *filename = (char*)args;
   long numbytes;
   char buf[MAXDATASIZE];
-
-   if(send(sockfd, mi->file_name, sizeof(mi->file_name), 0 ) == -1){ //send command
+  char* xml_msg = message_to_xml(msg);
+   if(send(sockfd, xml_msg, strlen(xml_msg), 0 ) == -1){ //search file
     perror("client: send");
     exit(1);
   }
@@ -31,7 +33,7 @@ void *download_handler(int sockfd, void *args){
   //char *b = malloc(sizeof(char));
 
 
-  FILE *fp = fopen("filefromserver","w");
+   FILE *fp = fopen("files/newfile" , "wb");
 
 
   do {
@@ -60,6 +62,6 @@ void *download_handler(int sockfd, void *args){
   
   fclose(fp);
 
-  return (void*)0;
+  return (void*)1;
 }
 

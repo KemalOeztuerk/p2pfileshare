@@ -7,6 +7,10 @@
 #include "../peer.h"
 #include "../metainfo.h"
 #include "talk_tracker.h"
+#include "download.h"
+#include "upload.h"
+#include "../tcp_server.h"
+#include <pthread.h>
 
 #define DEFAULT_TRACKER_PORT "5555"
 #define DEFAULT_OUTPUT_PATH "files/out.metainfo"
@@ -22,6 +26,19 @@ void print_usage(const char *prog_name) {
 }
 
 int main(int argc, char *argv[]) {
+
+  
+  // create a new process for upload 
+  int pid = fork();
+  if(pid == -1){
+    perror("fork: ");
+    return -1;
+  }else if(pid == 0){
+    tcp_server_args sv_args={"6666",upload_handler,NULL };
+    start_tcp_server(&sv_args);
+    return 0;
+  }
+  
   int opt;
   int announce_flag = 0, query_flag = 0;
   char *file_path = NULL, *file_name = NULL, *tracker_host = NULL, *tracker_port = DEFAULT_TRACKER_PORT, *output_path = DEFAULT_OUTPUT_PATH;
@@ -54,24 +71,33 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
   }
-
+ 
   if ((!announce_flag && !query_flag) || !file_path || !file_name || !tracker_host ) {
     print_usage(argv[0]);
     return EXIT_FAILURE;
   }
     
-  metainfo *mi = malloc(sizeof(metainfo));
   if (announce_flag) {
-    mi = init_metainfo(file_path, file_name, tracker_host,tracker_port);
-    create_metainfo_file(output_path, mi);
-    printf("%s %lu %s %s\n ",mi->file_name,mi->file_size_in_bytes,mi->tracker_host,mi->tracker_port);
+    
+    metainfo *mi = malloc(sizeof(metainfo));
+    printf("file path:%s %s %s %s\n",file_path,file_name,tracker_host,tracker_port);
+    if(( mi = init_metainfo(file_path, file_name, tracker_host,tracker_port)) == NULL){
+      perror("client: metainfo: ");
+      return EXIT_FAILURE;
+    }
+ 
+    if (create_metainfo_file(output_path, mi) != 0) {
+      //free_metainfo(mi);
+      return EXIT_FAILURE;
+    }
 
+    // announce to tracker server to publish file
     if (start_tcp_client(tracker_host, tracker_port, announce_file, mi) == NULL) {
       fprintf(stderr, "Failed to announce file\n");
       return EXIT_FAILURE;
     }
     printf("File announced successfully.\n");
-  } else if (query_flag) {
+  } else if (query_flag) { // query tracker server to get peer information of uploading peer
     metainfo *mi_query = malloc(sizeof(metainfo));
     read_metainfo_file(output_path, mi_query);	
     printf("Metainfo: %s %s %s %lu\n", mi_query->file_name, mi_query->tracker_host, mi_query->tracker_port, mi_query->file_size_in_bytes);
@@ -81,16 +107,21 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Failed to read metainfo file\n");
       return EXIT_FAILURE;
     }
-    peer *p = (peer *)start_tcp_client(mi_query->tracker_host, mi_query->tracker_port, request_peer, mi_query);
-    if (p) {
-      printf("Peer found: %s:%d\n", p->ip, p->port);
-      free(p);
+    //get peer information from the tracker
+    message *msg = (message *)start_tcp_client(mi_query->tracker_host, mi_query->tracker_port, request_peer, mi_query);
+    if (msg) {
+      printf("Peer found: %s:%d\n", msg->peer->ip, msg->peer->port);
+      char port_str[6];
+      sprintf(port_str,"%d",msg->peer->port);
+      start_tcp_client(msg->peer->ip, port_str , download_handler, (void*)msg);
+      //free(msg);
     } else {
       fprintf(stderr, "Failed to get peer information\n");
       return EXIT_FAILURE;
     }
   }
 
-  free_metainfo(mi);
+  //free_metainfo(mi);
+  
   return EXIT_SUCCESS;
 }

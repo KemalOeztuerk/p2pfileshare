@@ -59,7 +59,7 @@ void *start_tcp_client(char *hostname, char* port, handler_t handler, void *args
 
   if(retval == NULL){
     perror("retval is NULL");
-    exit(-1);
+    //exit(-1);
     }
   close(sockfd);
   

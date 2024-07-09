@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <expat.h>
+#include <miniupnpc/miniupnpc.h>
+#include <miniupnpc/upnpcommands.h>
 #include "message.h"
 
 void *get_in_addr(struct sockaddr *sa){
@@ -13,6 +15,38 @@ void *get_in_addr(struct sockaddr *sa){
 
   return &(((struct sockaddr_in*)sa)->sin_addr); //ipv6
 
+}
+
+
+char *hash_file(char *file_path){
+  unsigned char buffer[1024]; // buffer to read
+  FILE *fp = fopen(file_path,"rb");
+  if(fp == NULL){
+    perror("metainfo fopen");
+    return NULL; 
+  }
+
+  //  calculate hash of the file in byte level
+  SHA_CTX sha1;
+  SHA1_Init(&sha1);
+  unsigned char hash[SHA_DIGEST_LENGTH]; // byte 
+  //  char hash_str[SHA1_STR_SIZE];// hexadecimal
+  char *hash_str = malloc(SHA1_STR_SIZE);
+
+  size_t bytes_read;
+  while((bytes_read = fread(buffer,1,sizeof(buffer),fp))!=0){
+    SHA1_Update(&sha1, buffer, bytes_read);
+  }
+  
+  SHA1_Final(hash,&sha1);
+  fclose(fp);
+
+  for(int i = 0; i<SHA_DIGEST_LENGTH; i++){
+    sprintf(&hash_str[i*2],"%02x",hash[i]);
+  }
+
+  hash_str[SHA1_STR_SIZE-1] = '\0';
+  return hash_str;
 }
 
 size_t get_file_size(char* file_path){
@@ -131,4 +165,51 @@ void xml_to_message(const char *xml_str, message *msg) {
     }
 
     XML_ParserFree(parser);
+}
+
+
+int attempt_forward_port(){
+      struct UPNPDev *devlist;
+    struct UPNPUrls urls;
+    struct IGDdatas data;
+    int r;
+    char lanaddr[64]; // Allocate memory for lanaddr
+
+    // Discover UPnP devices on the network
+    devlist = upnpDiscover(2000, NULL, NULL, 0, 0, 2, &r);
+    if (devlist == NULL) {
+        printf("No UPnP devices found\n");
+        exit(1);
+    }
+
+    // Get the first device's URL and description data
+    r = UPNP_GetValidIGD(devlist, &urls, &data, lanaddr, sizeof(lanaddr));
+    if (r == 1) {
+        printf("Found a valid UPnP IGD\n");
+        printf("lanaddr: %s \n",lanaddr);
+        
+        // Add port mapping
+        char external_ip_address[16];
+        r = UPNP_AddPortMapping(urls.controlURL, data.first.servicetype, "12345", "12345", lanaddr, "fileshare", "TCP", NULL, NULL);
+        if (r == 0) {
+            printf("Port mapping added successfully\n");
+
+            // Get external IP address
+            r = UPNP_GetExternalIPAddress(urls.controlURL, data.first.servicetype, external_ip_address);
+            if (r == 0) {
+                printf("External IP Address: %s\n", external_ip_address);
+            } else {
+                printf("Failed to get external IP address\n");
+            }
+        } else {
+            printf("Failed to add port mapping\n");
+        }
+    } else {
+        printf("No valid UPnP IGD found\n");
+    }
+
+    // Free resources
+    freeUPNPDevlist(devlist);
+    return 0;
+
 }
