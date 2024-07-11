@@ -1,8 +1,8 @@
 #ifndef TALK_TRACKER_H
 #define TALK_TRACKER_H
 
-#include "../peer.h"
-#include "../metainfo.h"
+#include "peer.h"
+#include "metainfo.h"
 
 void *request_peer(int sockfd, void *mi);
 

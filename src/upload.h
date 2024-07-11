@@ -13,7 +13,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include "../utils.h"
+#include "utils.h"
 
 #define PORT "5555"
 #define BACKLOG 10

@@ -4,11 +4,11 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-#include "../tcp_client.h"
-#include "../peer.h"
-#include "../metainfo.h"
-#include "../message.h"
-#include "../utils.h"
+#include "tcp_client.h"
+#include "peer.h"
+#include "metainfo.h"
+#include "message.h"
+#include "utils.h"
 
 void *announce_file(int sockfd, void *args) {
   printf("announce!\n");

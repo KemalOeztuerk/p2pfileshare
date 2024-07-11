@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
+<interface>
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkTreeStore" id="tree_store">
+    <columns>
+      <!-- column-name ch1 -->
+      <column type="gchararray"/>
+      <!-- column-name ch2 -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkWindow" id="window">
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkFixed" id="fixed1">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkButton" id="btn1">
+            <property name="label">gtk-add</property>
+            <property name="width-request">100</property>
+            <property name="height-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">522</property>
+            <property name="y">34</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="btn2">
+            <property name="label">gtk-open</property>
+            <property name="width-request">100</property>
+            <property name="height-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">744</property>
+            <property name="y">34</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrolled1">
+            <property name="width-request">400</property>
+            <property name="height-request">250</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="shadow-type">in</property>
+            <child>
+              <object class="GtkTreeView" id="tree_view">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection" id="selection1"/>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="col1">
+                    <property name="title" translatable="yes">name</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="cell1"/>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="col2">
+                    <property name="title" translatable="yes">size</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="cell2"/>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="x">274</property>
+            <property name="y">232</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

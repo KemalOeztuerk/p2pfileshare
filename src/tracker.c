@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <sqlite3.h>
 
-#include "../tcp_server.h"
+#include "tcp_server.h"
 #include "track.h"
 
 // Function to initialize the database

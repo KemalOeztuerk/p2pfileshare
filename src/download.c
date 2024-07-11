@@ -11,9 +11,9 @@
 #define PORT "5555" // client to be connected
 #define MAXDATASIZE 1024
 
-#include "../tcp_client.h"
+#include "tcp_client.h"
 #include "download.h"
-#include "../metainfo.h"
+#include "metainfo.h"
 
 
 

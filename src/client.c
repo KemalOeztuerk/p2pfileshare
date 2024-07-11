@@ -3,13 +3,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "../tcp_client.h"
-#include "../peer.h"
-#include "../metainfo.h"
+#include "tcp_client.h"
+#include "peer.h"
+#include "metainfo.h"
 #include "talk_tracker.h"
 #include "download.h"
 #include "upload.h"
-#include "../tcp_server.h"
+#include "tcp_server.h"
 #include <pthread.h>
 
 #define DEFAULT_TRACKER_PORT "5555"

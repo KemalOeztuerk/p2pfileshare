@@ -6,12 +6,12 @@
 #include <sqlite3.h>
 #include <assert.h>
 
-#include "../tcp_server.h"
-#include "../metainfo.h"
-#include "../message.h"
-#include "../peer.h"
+#include "tcp_server.h"
+#include "metainfo.h"
+#include "message.h"
+#include "peer.h"
 #include "track.h"
-#include "../utils.h"
+#include "utils.h"
 
 sqlite3 *init_database(){
   sqlite3 *db;

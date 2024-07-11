@@ -17,10 +17,10 @@
 #define MAXDATASIZE 1024
 
 #include "upload.h"
-#include "../tcp_server.h"
-#include "../metainfo.h"
-#include "../peer.h"
-#include "../utils.h"
+#include "tcp_server.h"
+#include "metainfo.h"
+#include "peer.h"
+#include "utils.h"
 /*typedef struct peer_t{
   int id;
   metainfo files[128];
